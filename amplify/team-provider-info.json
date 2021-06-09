@@ -14,6 +14,16 @@
     "categories": {
       "auth": {
         "amazonclonecd0eea1f": {}
+      },
+      "function": {
+        "createPaymentIntent": {
+          "deploymentBucketName": "amplify-amazonclone-dev-100507-deployment",
+          "s3Key": "amplify-builds/createPaymentIntent-62783348424d694d4274-build.zip"
+        },
+        "StripeWebhook": {
+          "deploymentBucketName": "amplify-amazonclone-dev-100507-deployment",
+          "s3Key": "amplify-builds/StripeWebhook-6d464b444c597638452b-build.zip"
+        }
       }
     }
   }

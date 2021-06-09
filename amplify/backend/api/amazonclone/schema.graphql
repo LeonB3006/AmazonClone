@@ -1,4 +1,10 @@
+type Mutation {
+  createPaymentIntent(amount: Int!) : PaymentIntent! @function(name: "createPaymentIntent-${env}")
+}
 
+type PaymentIntent {
+  clientSecret: String!
+}
 
 type Product @model @auth(rules: [{allow: public}]) {
   id: ID!

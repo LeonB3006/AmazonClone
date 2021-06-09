@@ -87,7 +87,7 @@ const ShoppingCartScreen = () => {
   );
 
   const checkOut = () => {
-    navigation.navigate('addressScreen');
+    navigation.navigate('addressScreen', {totalPrice});
   };
 
   if (cartProducts.filter(cp => !cp.product).length !== 0) {

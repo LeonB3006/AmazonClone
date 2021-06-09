@@ -27,6 +27,8 @@ import Router from './navigation/Router';
 import Amplify from 'aws-amplify';
 import {withAuthenticator} from 'aws-amplify-react-native';
 
+import {StripeProvider} from '@stripe/stripe-react-native';
+
 import config from './src/aws-exports';
 Amplify.configure(config);
 
@@ -43,7 +45,9 @@ const App = () => {
   return (
     <View style={backgroundStyle}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <Router />
+      <StripeProvider publishableKey="pk_test_51J0IUkBsvZ5SKAgtmKTwTiQ68bBp0OlzE1oUTfnvWwO7mVmKN4aI94xg6NYDK0XI8FL8bNkh6TP7W8Ua6MO6MdLV0002bibJCu">
+        <Router />
+      </StripeProvider>
     </View>
   );
 };

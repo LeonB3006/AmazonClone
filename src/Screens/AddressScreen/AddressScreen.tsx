@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -12,23 +12,63 @@ import styles from './styles';
 import {Picker} from '@react-native-picker/picker';
 import countryList from 'country-list';
 import CartButton from '../../Components/CartButton/CartButton';
-import {DataStore, Auth} from 'aws-amplify';
+import {DataStore, Auth, graphqlOperation, API} from 'aws-amplify';
 import {Order, OrderProduct, CartProduct} from '../../models';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {createPaymentIntent} from '../../graphql/mutations';
+import {useStripe} from '@stripe/stripe-react-native';
 
 const AddressScreen = () => {
   const countries = countryList.getData();
   const [country, setCountry] = useState(countries[0].code);
   const [fullname, setFullName] = useState('');
   const [phonenumber, setPhonenumber] = useState('');
+  const [city, setCity] = useState('');
+
   const [address, setAddress] = useState('');
   const [addressError, setAddressError] = useState('');
-  const [city, setCity] = useState('');
+
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const navigation = useNavigation();
- 
+
+  const route = useRoute();
+  const amount = Math.floor(route.params?.totalPrice * 100 || 0);
+
+  useEffect(() => {
+    fetchPaymentIntent();
+  }, []);
+
+  useEffect(() => {
+    if (clientSecret) {
+      initializePaymentScreen();
+    }
+  }, [clientSecret]);
+
+  const fetchPaymentIntent = async () => {
+    const response = await API.graphql(
+      graphqlOperation(createPaymentIntent, {amount}),
+    );
+    setClientSecret(response.data.createPaymentIntent.clientSecret);
+  };
+
+  const initializePaymentScreen = async () => {
+    if (!clientSecret) {
+      return;
+    }
+    const {error} = await initPaymentSheet({
+      paymentIntentClientSecret: clientSecret,
+    });
+
+    console.log('success');
+
+    if (error) {
+      Alert.alert('Error: ' + error);
+    }
+  };
 
   const saveOrder = async () => {
-
     // get user details
 
     const userData = await Auth.currentAuthenticatedUser();
@@ -75,7 +115,7 @@ const AddressScreen = () => {
     );
 
     // redirect home
-    navigation.navigate('home');
+    navigation.navigate('cart');
   };
 
   const onCheckOut = () => {
@@ -92,8 +132,9 @@ const AddressScreen = () => {
       return;
     }
 
-    Alert.alert('Success!');
-    saveOrder();
+    // handle payment not SaveOrder
+
+    openPaymentSheet();
   };
 
   const validateAddress = () => {
@@ -102,6 +143,20 @@ const AddressScreen = () => {
     }
   };
 
+  const openPaymentSheet = async () => {
+    if (!clientSecret) {
+      Alert.alert('Error');
+    }
+    const {error} = await presentPaymentSheet({clientSecret});
+
+    if (error) {
+      Alert.alert('Error: Did not Pay');
+    } else {
+      Alert.alert('Order is succesful');
+      saveOrder();
+
+    }
+  };
   return (
     <KeyboardAvoidingView
       behaviour={Platform.OS === 'ios' ? 'padding' : 'height'}
